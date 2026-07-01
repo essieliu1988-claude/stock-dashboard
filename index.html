@@ -285,7 +285,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:1
 </div>
 
 <div class="footer">
-  台股 AI 供應鏈追蹤 · 數據由 Claude API 即時抓取 · 美股延遲約 15 分鐘<br>
+  台股 AI 供應鏈追蹤 · 數據來源：Yahoo Finance via allorigins · 美股延遲約 15 分鐘<br>
   台股數據於盤後（14:30 後）更新 · 僅供研究參考，不構成投資建議
 </div>
 
@@ -309,74 +309,73 @@ function toggleFw(h) {
   b.classList.toggle('open',!o); t.classList.toggle('open',!o);
 }
 
-// ── Fetch via Claude API ──
+// ── Yahoo Finance via allorigins CORS proxy ──
+const SYMBOLS = {
+  TWII: '%5ETWII',
+  TPEX: '%5ETPEX',
+  SOX:  '%5ESOX',
+  NQ:   'NQ%3DF',
+  NDX:  '%5ENDX',
+  TSM:  'TSM',
+  GSPC: '%5EGSPC'
+};
+
+async function fetchQuote(key, encoded) {
+  const yahooUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${encoded}?interval=1d&range=2d`;
+  const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(yahooUrl)}`;
+  const res = await fetch(proxyUrl);
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const wrapper = await res.json();
+  const data = JSON.parse(wrapper.contents);
+  const meta = data?.chart?.result?.[0]?.meta;
+  if (!meta) throw new Error('no meta');
+  const price = meta.regularMarketPrice;
+  const prev  = meta.chartPreviousClose ?? meta.previousClose;
+  const change = price - prev;
+  const changePct = (change / prev) * 100;
+  return { price, change, changePct };
+}
+
 async function fetchAll() {
-  const btn = document.getElementById('fetchBtn');
-  const status = document.getElementById('fetchStatus');
+  const btn     = document.getElementById('fetchBtn');
+  const status  = document.getElementById('fetchStatus');
   const spinner = document.getElementById('fetchSpinner');
 
   btn.disabled = true;
   spinner.className = 'spin';
   status.className = 'fetch-status loading';
-  status.textContent = '正在抓取數據中...';
+  status.textContent = '正在抓取數據...';
 
-  const prompt = `請用 Yahoo Finance 查詢以下股票代碼的最新報價，並以 JSON 格式回傳，不要有任何其他文字或說明：
-^TWII（台灣加權指數）、^TPEX（台灣櫃買指數）、^SOX（費城半導體）、NQ=F（那斯達克期貨）、^NDX（那斯達克100）、TSM（台積電ADR）、^GSPC（S&P500）
+  const quotes = {};
+  const errors = [];
 
-回傳格式範例（每個代碼都要有）：
-{
-  "TWII": {"price": 44523.45, "change": 123.45, "changePct": 0.28},
-  "TPEX": {"price": 285.32, "change": -1.23, "changePct": -0.43},
-  "SOX": {"price": 4821.33, "change": -145.2, "changePct": -2.92},
-  "NQ": {"price": 19823.5, "change": 45.25, "changePct": 0.23},
-  "NDX": {"price": 19654.2, "change": 82.3, "changePct": 0.42},
-  "TSM": {"price": 198.45, "change": 2.35, "changePct": 1.20},
-  "GSPC": {"price": 5432.1, "change": 12.3, "changePct": 0.23}
-}
-請務必只回傳 JSON，不要任何解釋文字。若無法取得某個數據，該欄位用 null。`;
-
-  try {
-    const res = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
-        max_tokens: 1000,
-        tools: [{ type: 'web_search_20250305', name: 'web_search' }],
-        messages: [{ role: 'user', content: prompt }]
-      })
-    });
-
-    const data = await res.json();
-
-    // Extract text from response (may be after tool use)
-    let raw = '';
-    if (data.content) {
-      for (const block of data.content) {
-        if (block.type === 'text') raw += block.text;
+  await Promise.allSettled(
+    Object.entries(SYMBOLS).map(async ([key, enc]) => {
+      try {
+        quotes[key] = await fetchQuote(key, enc);
+      } catch(e) {
+        errors.push(key);
+        quotes[key] = null;
       }
-    }
+    })
+  );
 
-    // Parse JSON from response
-    const jsonMatch = raw.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) throw new Error('無法解析數據格式');
-
-    const quotes = JSON.parse(jsonMatch[0]);
+  if (Object.values(quotes).some(v => v !== null)) {
     renderQuotes(quotes);
-
     const now = new Date();
-    status.className = 'fetch-status ok';
-    status.textContent = `✓ 更新於 ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
-    document.getElementById('hdrTime').textContent = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')} 更新`;
-
-  } catch(e) {
-    console.error(e);
+    const t = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+    status.className = errors.length ? 'fetch-status loading' : 'fetch-status ok';
+    status.textContent = errors.length
+      ? `✓ ${t} 更新（部分失敗：${errors.join(', ')}）`
+      : `✓ 更新於 ${t}`;
+    document.getElementById('hdrTime').textContent = `${t} 更新`;
+  } else {
     status.className = 'fetch-status err';
-    status.textContent = `✗ 抓取失敗：${e.message}`;
-  } finally {
-    btn.disabled = false;
-    spinner.className = '';
+    status.textContent = '✗ 全部抓取失敗，請稍後再試';
   }
+
+  btn.disabled = false;
+  spinner.className = '';
 }
 
 // ── Render quotes ──
