@@ -3,87 +3,137 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>市場晨報｜台股 AI 供應鏈追蹤</title>
+<title>市場晨報｜台股 AI 供應鏈</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;600&family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
-  :root {
-    --bg:#0a0c10;--surface:#111318;--surface2:#181c24;--border:#1f2533;
-    --green:#00e5a0;--red:#ff4d6d;--yellow:#f5c518;--blue:#4d9fff;
-    --dg:rgba(0,229,160,.10);--dr:rgba(255,77,109,.10);--dy:rgba(245,197,24,.10);--db:rgba(77,159,255,.10);
-    --text:#e8eaf0;--dim:#6b7280;--mid:#9ca3af;
-    --mono:'IBM Plex Mono',monospace;--sans:'Noto Sans TC',sans-serif;
-  }
-  *{margin:0;padding:0;box-sizing:border-box}
-  body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;padding:20px 16px 40px;max-width:900px;margin:0 auto}
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;600;700&family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
+:root {
+  --bg:#080b0f;--s1:#0f1217;--s2:#161b23;--border:#1e2535;
+  --g:#00e5a0;--r:#ff4560;--y:#f5c518;--b:#4d9fff;--p:#b06cff;
+  --dg:rgba(0,229,160,.10);--dr:rgba(255,69,96,.10);--dy:rgba(245,197,24,.10);--db:rgba(77,159,255,.10);
+  --text:#e8eaf0;--dim:#505870;--mid:#8892a4;
+  --mono:'IBM Plex Mono',monospace;--sans:'Noto Sans TC',sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;padding:18px 14px 48px;max-width:860px;margin:0 auto}
 
-  .header{display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:20px;padding-bottom:14px;border-bottom:1px solid var(--border)}
-  .header-left .label{font-family:var(--mono);font-size:10px;letter-spacing:.2em;color:var(--dim);text-transform:uppercase;margin-bottom:4px}
-  .header-left h1{font-size:18px;font-weight:700;letter-spacing:-.02em}
-  .header-right{text-align:right}
-  .date-display{font-family:var(--mono);font-size:12px;color:var(--blue);margin-bottom:2px}
-  .update-time{font-family:var(--mono);font-size:10px;color:var(--dim)}
+/* Header */
+.hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;padding-bottom:12px;border-bottom:1px solid var(--border)}
+.hdr-l .eyebrow{font-family:var(--mono);font-size:9px;letter-spacing:.25em;color:var(--dim);text-transform:uppercase;margin-bottom:3px}
+.hdr-l h1{font-size:17px;font-weight:700;letter-spacing:-.03em}
+.hdr-r{text-align:right}
+.hdr-date{font-family:var(--mono);font-size:11px;color:var(--b);margin-bottom:2px}
+.hdr-time{font-family:var(--mono);font-size:9px;color:var(--dim)}
 
-  .tabs{display:flex;gap:4px;margin-bottom:20px;background:var(--surface);padding:4px;border-radius:8px;border:1px solid var(--border)}
-  .tab{flex:1;padding:7px 8px;background:transparent;border:none;border-radius:5px;color:var(--dim);font-family:var(--sans);font-size:12px;cursor:pointer;transition:all .2s;text-align:center}
-  .tab.active{background:var(--surface2);color:var(--text);border:1px solid var(--border)}
+/* Tabs */
+.tabs{display:flex;gap:3px;margin-bottom:16px;background:var(--s1);padding:3px;border-radius:7px;border:1px solid var(--border)}
+.tab{flex:1;padding:6px 8px;background:transparent;border:none;border-radius:5px;color:var(--dim);font-family:var(--sans);font-size:11px;cursor:pointer;transition:all .15s;text-align:center}
+.tab.active{background:var(--s2);color:var(--text);border:1px solid var(--border)}
+.panel{display:none}.panel.active{display:block}
 
-  .panel{display:none}.panel.active{display:block}
+/* Fetch button + status */
+.fetch-row{display:flex;align-items:center;gap:10px;margin-bottom:14px}
+.fetch-btn{display:flex;align-items:center;gap:6px;padding:8px 16px;background:var(--b);border:none;border-radius:7px;color:#080b0f;font-family:var(--mono);font-size:11px;font-weight:700;cursor:pointer;letter-spacing:.05em;transition:opacity .15s;white-space:nowrap}
+.fetch-btn:hover{opacity:.85}
+.fetch-btn:disabled{opacity:.45;cursor:not-allowed}
+.fetch-status{font-family:var(--mono);font-size:10px;color:var(--dim);flex:1}
+.fetch-status.loading{color:var(--y)}
+.fetch-status.ok{color:var(--g)}
+.fetch-status.err{color:var(--r)}
 
-  .section-label{display:flex;align-items:center;gap:10px;margin:18px 0 10px}
-  .section-label span{font-family:var(--mono);font-size:10px;letter-spacing:.15em;color:var(--dim);text-transform:uppercase;white-space:nowrap}
-  .section-label::after{content:'';flex:1;height:1px;background:var(--border)}
+/* Section label */
+.sec{display:flex;align-items:center;gap:8px;margin:14px 0 8px}
+.sec span{font-family:var(--mono);font-size:9px;letter-spacing:.18em;color:var(--dim);text-transform:uppercase;white-space:nowrap}
+.sec::after{content:'';flex:1;height:1px;background:var(--border)}
 
-  .tv-wrap{background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:10px}
-  .tv-head{display:flex;align-items:center;justify-content:space-between;padding:10px 14px 8px;border-bottom:1px solid var(--border)}
-  .tv-title{font-family:var(--mono);font-size:11px;color:var(--mid);letter-spacing:.08em}
-  .tv-badge{font-family:var(--mono);font-size:9px;padding:2px 6px;border-radius:3px;background:var(--db);color:var(--blue);border:1px solid rgba(77,159,255,.2)}
-  .tv-badge.green{background:var(--dg);color:var(--green);border-color:rgba(0,229,160,.2)}
-  .tv-badge.yellow{background:var(--dy);color:var(--yellow);border-color:rgba(245,197,24,.2)}
-  .tv-inner{height:140px}.tv-inner.tall{height:240px}.tv-inner.ticker{height:56px}
+/* Index grid */
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px}
+.grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:8px}
 
-  .two-col{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+/* Index card */
+.card{background:var(--s1);border:1px solid var(--border);border-radius:10px;padding:14px 14px 12px;position:relative;overflow:hidden;transition:border-color .2s}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--border);transition:background .3s}
+.card.up::before{background:var(--g)}
+.card.down::before{background:var(--r)}
+.card.neu::before{background:var(--dim)}
+.card-tag{font-family:var(--mono);font-size:8px;letter-spacing:.12em;color:var(--dim);text-transform:uppercase;margin-bottom:6px;display:flex;align-items:center;gap:5px}
+.card-badge{font-size:8px;padding:1px 5px;border-radius:3px;background:var(--db);color:var(--b);border:1px solid rgba(77,159,255,.2);font-family:var(--mono)}
+.card-badge.tw{background:var(--dg);color:var(--g);border-color:rgba(0,229,160,.2)}
+.card-badge.warn{background:var(--dy);color:var(--y);border-color:rgba(245,197,24,.2)}
+.card-val{font-family:var(--mono);font-size:22px;font-weight:700;letter-spacing:-.03em;line-height:1;margin-bottom:5px;color:var(--mid);transition:color .3s}
+.card.up .card-val{color:var(--g)}
+.card.down .card-val{color:var(--r)}
+.card-chg{font-family:var(--mono);font-size:11px;margin-bottom:8px;color:var(--mid)}
+.card.up .card-chg{color:var(--g)}
+.card.down .card-chg{color:var(--r)}
+.card-sig{font-size:10px;color:var(--mid);line-height:1.5;border-top:1px solid var(--border);padding-top:7px}
 
-  .info-box{background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--blue);border-radius:8px;padding:12px 14px;margin-bottom:12px;display:flex;gap:10px;align-items:flex-start}
-  .info-box.yellow{border-left-color:var(--yellow)}.info-box.red{border-left-color:var(--red)}.info-box.green{border-left-color:var(--green)}
-  .info-icon{font-size:14px;flex-shrink:0;margin-top:1px}
-  .info-text{font-size:12px;color:var(--mid);line-height:1.65}
-  .info-text strong{color:var(--text)}
+/* Wide card for TAIEX */
+.card-wide{grid-column:1/-1}
+.card-wide .card-val{font-size:32px}
 
-  .fw-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:8px}
-  .fw-head{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;cursor:pointer;user-select:none}
-  .fw-head:hover{background:var(--surface2)}
-  .fw-left{display:flex;align-items:center;gap:10px}
-  .fw-icon{width:30px;height:30px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
-  .fw-icon.blue{background:var(--db)}.fw-icon.green{background:var(--dg)}.fw-icon.yellow{background:var(--dy)}.fw-icon.red{background:var(--dr)}
-  .fw-title{font-size:13px;font-weight:500;margin-bottom:2px}
-  .fw-sub{font-size:10px;color:var(--dim);font-family:var(--mono)}
-  .fw-toggle{font-size:16px;color:var(--dim);transition:transform .2s;flex-shrink:0}
-  .fw-toggle.open{transform:rotate(45deg)}
-  .fw-body{padding:0 14px 14px;display:none;border-top:1px solid var(--border);padding-top:12px}
-  .fw-body.open{display:block}
-  .fw-body p{font-size:12px;color:var(--mid);line-height:1.75;margin-bottom:8px}
-  .fw-body p:last-child{margin-bottom:0}
+/* Alert strip */
+.alert{background:var(--s1);border:1px solid var(--border);border-left:3px solid var(--y);border-radius:8px;padding:10px 13px;margin-bottom:10px;display:none;gap:8px;align-items:flex-start}
+.alert.show{display:flex}
+.alert.red{border-left-color:var(--r)}
+.alert.green{border-left-color:var(--g)}
+.alert-ico{font-size:13px;flex-shrink:0;margin-top:1px}
+.alert-txt{font-size:11px;color:var(--mid);line-height:1.6}
+.alert-txt strong{color:var(--text)}
 
-  .badge{display:inline-flex;align-items:center;gap:4px;padding:2px 7px;border-radius:4px;font-family:var(--mono);font-size:9px;letter-spacing:.05em;margin-bottom:8px}
-  .badge.active{background:var(--dg);color:var(--green);border:1px solid rgba(0,229,160,.25)}
-  .badge.warning{background:var(--dy);color:var(--yellow);border:1px solid rgba(245,197,24,.25)}
-  .badge.risk{background:var(--dr);color:var(--red);border:1px solid rgba(255,77,109,.25)}
+/* Insight box */
+.insight{background:linear-gradient(135deg,rgba(77,159,255,.06),rgba(176,108,255,.06));border:1px solid rgba(77,159,255,.18);border-radius:10px;padding:13px 14px;margin-bottom:10px}
+.insight-label{font-family:var(--mono);font-size:9px;letter-spacing:.15em;color:var(--b);text-transform:uppercase;margin-bottom:6px}
+.insight-text{font-size:12px;color:var(--mid);line-height:1.7}
+.insight-text strong{color:var(--text)}
 
-  .footer{margin-top:28px;padding-top:14px;border-top:1px solid var(--border);font-family:var(--mono);font-size:9px;color:var(--dim);text-align:center;letter-spacing:.05em}
+/* Skeleton pulse */
+@keyframes pulse{0%,100%{opacity:.3}50%{opacity:.7}}
+.skel{background:var(--border);border-radius:4px;animation:pulse 1.5s ease infinite}
 
-  @media(max-width:520px){.two-col{grid-template-columns:1fr}.tv-inner{height:120px}.tv-inner.tall{height:180px}}
+/* Spinner */
+@keyframes spin{to{transform:rotate(360deg)}}
+.spin{display:inline-block;width:10px;height:10px;border:2px solid rgba(77,159,255,.3);border-top-color:var(--b);border-radius:50%;animation:spin .7s linear infinite}
+
+/* Framework */
+.fw{background:var(--s1);border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-bottom:8px}
+.fw-hd{display:flex;align-items:center;justify-content:space-between;padding:11px 13px;cursor:pointer;user-select:none}
+.fw-hd:hover{background:var(--s2)}
+.fw-l{display:flex;align-items:center;gap:9px}
+.fw-ico{width:28px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0}
+.fw-ico.b{background:var(--db)}.fw-ico.g{background:var(--dg)}.fw-ico.y{background:var(--dy)}.fw-ico.r{background:var(--dr)}
+.fw-title{font-size:12px;font-weight:500;margin-bottom:1px}
+.fw-sub{font-size:9px;color:var(--dim);font-family:var(--mono)}
+.fw-tog{font-size:15px;color:var(--dim);transition:transform .2s}
+.fw-tog.open{transform:rotate(45deg)}
+.fw-bd{padding:0 13px 13px;display:none;border-top:1px solid var(--border);padding-top:11px}
+.fw-bd.open{display:block}
+.fw-bd p{font-size:11px;color:var(--mid);line-height:1.75;margin-bottom:7px}
+.fw-bd p:last-child{margin-bottom:0}
+.bdg{display:inline-flex;align-items:center;gap:3px;padding:2px 6px;border-radius:3px;font-family:var(--mono);font-size:8px;letter-spacing:.05em;margin-bottom:7px}
+.bdg.a{background:var(--dg);color:var(--g);border:1px solid rgba(0,229,160,.2)}
+.bdg.w{background:var(--dy);color:var(--y);border:1px solid rgba(245,197,24,.2)}
+.bdg.r{background:var(--dr);color:var(--r);border:1px solid rgba(255,69,96,.2)}
+
+/* Footer */
+.footer{margin-top:24px;padding-top:12px;border-top:1px solid var(--border);font-family:var(--mono);font-size:9px;color:var(--dim);text-align:center;letter-spacing:.05em;line-height:1.8}
+
+@media(max-width:480px){
+  .grid-3{grid-template-columns:1fr 1fr}
+  .card-val{font-size:18px}
+  .card-wide .card-val{font-size:26px}
+}
 </style>
 </head>
 <body>
 
-<div class="header">
-  <div class="header-left">
-    <div class="label">台股 AI 供應鏈</div>
+<div class="hdr">
+  <div class="hdr-l">
+    <div class="eyebrow">台股 AI 供應鏈</div>
     <h1>市場晨報</h1>
   </div>
-  <div class="header-right">
-    <div class="date-display" id="dateDisplay"></div>
-    <div class="update-time">即時數據 · TradingView</div>
+  <div class="hdr-r">
+    <div class="hdr-date" id="hdrDate"></div>
+    <div class="hdr-time" id="hdrTime">數據尚未載入</div>
   </div>
 </div>
 
@@ -92,221 +142,337 @@
   <button class="tab" onclick="switchTab('weekly')">🧭 分析框架</button>
 </div>
 
-<!-- DAILY -->
+<!-- ═══ DAILY ═══ -->
 <div class="panel active" id="panel-daily">
 
-  <!-- Ticker tape -->
-  <div class="tv-wrap" style="margin-bottom:12px">
-    <div class="tradingview-widget-container">
-      <div class="tradingview-widget-container__widget"></div>
-      <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-ticker-tape.js" async>
-      {"symbols":[
-        {"proName":"TWSE:TAIEX","title":"台灣加權"},
-        {"proName":"TWSE:GTSM","title":"櫃買指數"},
-        {"proName":"NASDAQ:SOX","title":"費城半導體"},
-        {"proName":"NASDAQ:NDX","title":"那斯達克100"},
-        {"proName":"CME_MINI:NQ1!","title":"那指期貨"},
-        {"proName":"NYSE:TSM","title":"台積電ADR"}
-      ],"showSymbolLogo":false,"isTransparent":true,"displayMode":"adaptive","colorTheme":"dark","locale":"zh_TW"}
-      </script>
+  <div class="fetch-row">
+    <button class="fetch-btn" id="fetchBtn" onclick="fetchAll()">
+      <span id="fetchSpinner"></span>抓取最新數據
+    </button>
+    <div class="fetch-status" id="fetchStatus">點擊抓取台股與美股即時數據</div>
+  </div>
+
+  <!-- Alert strips -->
+  <div class="alert red" id="alertSox">
+    <div class="alert-ico">🚨</div>
+    <div class="alert-txt" id="alertSoxTxt"></div>
+  </div>
+  <div class="alert" id="alertFut">
+    <div class="alert-ico">⚡</div>
+    <div class="alert-txt" id="alertFutTxt"></div>
+  </div>
+
+  <!-- 台股 -->
+  <div class="sec"><span>台股大盤</span></div>
+  <div class="grid-2">
+    <div class="card" id="card-twii">
+      <div class="card-tag">台灣加權指數 <span class="card-badge tw">TWII</span></div>
+      <div class="card-val" id="val-twii">—</div>
+      <div class="card-chg" id="chg-twii">—</div>
+      <div class="card-sig" id="sig-twii">等待數據</div>
+    </div>
+    <div class="card" id="card-tpex">
+      <div class="card-tag">櫃買指數 <span class="card-badge tw">TPEX</span></div>
+      <div class="card-val" id="val-tpex">—</div>
+      <div class="card-chg" id="chg-tpex">—</div>
+      <div class="card-sig" id="sig-tpex">等待數據</div>
     </div>
   </div>
 
-  <div class="section-label"><span>台股大盤</span></div>
-  <div class="two-col">
-    <div class="tv-wrap">
-      <div class="tv-head"><div class="tv-title">台灣加權指數 TAIEX</div><div class="tv-badge green">LIVE</div></div>
-      <div class="tv-inner">
-        <div class="tradingview-widget-container" style="height:100%">
-          <div class="tradingview-widget-container__widget" style="height:100%"></div>
-          <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-mini-symbol-overview.js" async>
-          {"symbol":"TWSE:TAIEX","width":"100%","height":"100%","locale":"zh_TW","dateRange":"5D","colorTheme":"dark","isTransparent":true,"autosize":true}
-          </script>
-        </div>
-      </div>
+  <!-- 美股 -->
+  <div class="sec"><span>美股關鍵指標</span></div>
+  <div class="grid-3">
+    <div class="card" id="card-sox">
+      <div class="card-tag">費城半導體 <span class="card-badge warn">領先指標</span></div>
+      <div class="card-val" id="val-sox">—</div>
+      <div class="card-chg" id="chg-sox">—</div>
+      <div class="card-sig" id="sig-sox">等待數據</div>
     </div>
-    <div class="tv-wrap">
-      <div class="tv-head"><div class="tv-title">櫃買指數 OTC</div><div class="tv-badge green">LIVE</div></div>
-      <div class="tv-inner">
-        <div class="tradingview-widget-container" style="height:100%">
-          <div class="tradingview-widget-container__widget" style="height:100%"></div>
-          <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-mini-symbol-overview.js" async>
-          {"symbol":"TWSE:GTSM","width":"100%","height":"100%","locale":"zh_TW","dateRange":"5D","colorTheme":"dark","isTransparent":true,"autosize":true}
-          </script>
-        </div>
-      </div>
+    <div class="card" id="card-nq">
+      <div class="card-tag">那指期貨 <span class="card-badge warn">台股領先</span></div>
+      <div class="card-val" id="val-nq">—</div>
+      <div class="card-chg" id="chg-nq">—</div>
+      <div class="card-sig" id="sig-nq">等待數據</div>
+    </div>
+    <div class="card" id="card-ndx">
+      <div class="card-tag">那斯達克100 <span class="card-badge">泡沫雷達</span></div>
+      <div class="card-val" id="val-ndx">—</div>
+      <div class="card-chg" id="chg-ndx">—</div>
+      <div class="card-sig" id="sig-ndx">等待數據</div>
     </div>
   </div>
 
-  <div class="section-label"><span>美股關鍵指標</span></div>
-  <div class="two-col">
-    <div class="tv-wrap">
-      <div class="tv-head"><div class="tv-title">費城半導體 SOX</div><div class="tv-badge yellow">領先指標</div></div>
-      <div class="tv-inner">
-        <div class="tradingview-widget-container" style="height:100%">
-          <div class="tradingview-widget-container__widget" style="height:100%"></div>
-          <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-mini-symbol-overview.js" async>
-          {"symbol":"NASDAQ:SOX","width":"100%","height":"100%","locale":"zh_TW","dateRange":"5D","colorTheme":"dark","isTransparent":true,"autosize":true}
-          </script>
-        </div>
-      </div>
+  <div class="grid-2">
+    <div class="card" id="card-tsm">
+      <div class="card-tag">台積電 ADR <span class="card-badge tw">核心</span></div>
+      <div class="card-val" id="val-tsm">—</div>
+      <div class="card-chg" id="chg-tsm">—</div>
+      <div class="card-sig" id="sig-tsm">等待數據</div>
     </div>
-    <div class="tv-wrap">
-      <div class="tv-head"><div class="tv-title">那指期貨 NQ1!</div><div class="tv-badge yellow">台股領先</div></div>
-      <div class="tv-inner">
-        <div class="tradingview-widget-container" style="height:100%">
-          <div class="tradingview-widget-container__widget" style="height:100%"></div>
-          <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-mini-symbol-overview.js" async>
-          {"symbol":"CME_MINI:NQ1!","width":"100%","height":"100%","locale":"zh_TW","dateRange":"5D","colorTheme":"dark","isTransparent":true,"autosize":true}
-          </script>
-        </div>
-      </div>
+    <div class="card" id="card-spy">
+      <div class="card-tag">S&amp;P 500 <span class="card-badge">大盤</span></div>
+      <div class="card-val" id="val-spy">—</div>
+      <div class="card-chg" id="chg-spy">—</div>
+      <div class="card-sig" id="sig-spy">等待數據</div>
     </div>
   </div>
 
-  <div class="two-col">
-    <div class="tv-wrap">
-      <div class="tv-head"><div class="tv-title">台積電 ADR (TSM)</div><div class="tv-badge">核心標的</div></div>
-      <div class="tv-inner">
-        <div class="tradingview-widget-container" style="height:100%">
-          <div class="tradingview-widget-container__widget" style="height:100%"></div>
-          <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-mini-symbol-overview.js" async>
-          {"symbol":"NYSE:TSM","width":"100%","height":"100%","locale":"zh_TW","dateRange":"5D","colorTheme":"dark","isTransparent":true,"autosize":true}
-          </script>
-        </div>
-      </div>
-    </div>
-    <div class="tv-wrap">
-      <div class="tv-head"><div class="tv-title">那斯達克 100</div><div class="tv-badge">泡沫雷達</div></div>
-      <div class="tv-inner">
-        <div class="tradingview-widget-container" style="height:100%">
-          <div class="tradingview-widget-container__widget" style="height:100%"></div>
-          <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-mini-symbol-overview.js" async>
-          {"symbol":"NASDAQ:NDX","width":"100%","height":"100%","locale":"zh_TW","dateRange":"5D","colorTheme":"dark","isTransparent":true,"autosize":true}
-          </script>
-        </div>
-      </div>
-    </div>
+  <!-- Today's insight -->
+  <div class="sec"><span>今日判讀</span></div>
+  <div class="insight" id="insightBox" style="display:none">
+    <div class="insight-label">🧠 AI 綜合判讀</div>
+    <div class="insight-text" id="insightText"></div>
   </div>
 
-  <div class="section-label"><span>台股 1 個月走勢</span></div>
-  <div class="tv-wrap">
-    <div class="tv-inner tall">
-      <div class="tradingview-widget-container" style="height:100%">
-        <div class="tradingview-widget-container__widget" style="height:100%"></div>
-        <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-mini-symbol-overview.js" async>
-        {"symbol":"TWSE:TAIEX","width":"100%","height":"100%","locale":"zh_TW","dateRange":"1M","colorTheme":"dark","isTransparent":true,"autosize":true}
-        </script>
-      </div>
-    </div>
-  </div>
-
-  <div class="info-box yellow">
-    <div class="info-icon">⚡</div>
-    <div class="info-text">
-      <strong>每日閱讀邏輯：</strong>先看 Ticker 跑馬燈掌握大方向 → 費半若昨日跌 &gt;3% 特別留意台股開盤壓力 → 那指期貨若正值，留意「開低走高」機會 → 切換「分析框架」頁面深度校準判斷。
-    </div>
-  </div>
 </div>
 
-<!-- WEEKLY -->
+<!-- ═══ WEEKLY ═══ -->
 <div class="panel" id="panel-weekly">
 
-  <div class="info-box">
-    <div class="info-icon">🧭</div>
-    <div class="info-text">解讀每日數字的長期思考框架，建議週末展開回顧一次，校準對市場走向的判斷。</div>
+  <div class="alert green show" style="margin-bottom:12px">
+    <div class="alert-ico">🧭</div>
+    <div class="alert-txt">解讀每日數字的長期思考框架。建議週末展開回顧，校準對市場走向的判斷。</div>
   </div>
 
-  <div class="fw-card">
-    <div class="fw-head" onclick="toggleFw(this)">
-      <div class="fw-left">
-        <div class="fw-icon blue">🏭</div>
-        <div><div class="fw-title">AI 供應鏈質變 × 均值回歸延遲</div><div class="fw-sub">本益比 / 台積電護城河 / 結構性多頭</div></div>
-      </div>
-      <div class="fw-toggle">+</div>
+  <div class="fw">
+    <div class="fw-hd" onclick="toggleFw(this)">
+      <div class="fw-l"><div class="fw-ico b">🏭</div><div><div class="fw-title">AI 供應鏈質變 × 均值回歸延遲</div><div class="fw-sub">本益比 / 台積電護城河 / 結構性多頭</div></div></div>
+      <div class="fw-tog">+</div>
     </div>
-    <div class="fw-body">
-      <span class="badge active">● 結構性多頭持續中</span>
+    <div class="fw-bd">
+      <span class="bdg a">● 結構性多頭持續中</span>
       <p>台股已從代工毛利模式轉變為全球最具獨占性的 AI 供應鏈，以台積電為核心。AI 算力需求龐大且尚未被滿足，企業獲利暴增，傳統「均值回歸」鐵律暫時失靈，本益比被推升至近 30 倍歷史極端值。</p>
       <p>⚠️ <strong>觀察指標：</strong>本益比是否開始壓縮。若壓縮，代表市場重新定價均值回歸風險。老手踏空成本每天都在升高，但多頭不代表永遠不止。</p>
     </div>
   </div>
 
-  <div class="fw-card">
-    <div class="fw-head" onclick="toggleFw(this)">
-      <div class="fw-left">
-        <div class="fw-icon green">📊</div>
-        <div><div class="fw-title">ETF 狂熱 × 資金流動結構</div><div class="fw-sub">0050 / 散戶定期定額 / 嘎空手效應</div></div>
-      </div>
-      <div class="fw-toggle">+</div>
+  <div class="fw">
+    <div class="fw-hd" onclick="toggleFw(this)">
+      <div class="fw-l"><div class="fw-ico g">📊</div><div><div class="fw-title">ETF 狂熱 × 資金流動結構</div><div class="fw-sub">0050 / 散戶定期定額 / 嘎空手效應</div></div></div>
+      <div class="fw-tog">+</div>
     </div>
-    <div class="fw-body">
-      <span class="badge active">● 買盤結構穩固</span>
+    <div class="fw-bd">
+      <span class="bdg a">● 買盤結構穩固</span>
       <p>房地產利潤受政策壓縮，資金大量流入股市。散戶透過定期定額與逢低買 ETF，形成強大持續性買盤，是「嘎空手」最強推手。</p>
       <p>⚠️ <strong>觀察指標：</strong>ETF 申購贖回量。若出現大量贖回，是情緒反轉訊號。越多人不懂技術分析卻在賺錢，正向回饋越強，但頂部訊號也越難識別。</p>
     </div>
   </div>
 
-  <div class="fw-card">
-    <div class="fw-head" onclick="toggleFw(this)">
-      <div class="fw-left">
-        <div class="fw-icon yellow">🧠</div>
-        <div><div class="fw-title">散戶 FOMO × 老手踏空心理戰</div><div class="fw-sub">風險認知 / 歷史包袱 / 行為偏誤</div></div>
-      </div>
-      <div class="fw-toggle">+</div>
+  <div class="fw">
+    <div class="fw-hd" onclick="toggleFw(this)">
+      <div class="fw-l"><div class="fw-ico y">🧠</div><div><div class="fw-title">散戶 FOMO × 老手踏空心理戰</div><div class="fw-sub">風險認知 / 歷史包袱 / 行為偏誤</div></div></div>
+      <div class="fw-tog">+</div>
     </div>
-    <div class="fw-body">
-      <span class="badge warning">⚡ 情緒持續分歧</span>
+    <div class="fw-bd">
+      <span class="bdg w">⚡ 情緒持續分歧</span>
       <p>懂歷史的老手設有停損與等回檔機制，反而在這波不回頭的多頭中完美錯失。不懂技術分析的年輕散戶無懼風險逢低就買，反而賺得最多。</p>
       <p>⚠️ <strong>自我校準：</strong>你現在是「理性踏空者」還是「適度參與者」？當 FOMO 散戶開始大量虧損時，才是真正的轉折訊號。</p>
     </div>
   </div>
 
-  <div class="fw-card">
-    <div class="fw-head" onclick="toggleFw(this)">
-      <div class="fw-left">
-        <div class="fw-icon red">🌡️</div>
-        <div><div class="fw-title">美股極度貪婪 × 泡沫風險雷達</div><div class="fw-sub">SpaceX / xAI / 那斯達克 vs 2000年</div></div>
-      </div>
-      <div class="fw-toggle">+</div>
+  <div class="fw">
+    <div class="fw-hd" onclick="toggleFw(this)">
+      <div class="fw-l"><div class="fw-ico r">🌡️</div><div><div class="fw-title">美股極度貪婪 × 泡沫風險雷達</div><div class="fw-sub">SpaceX / xAI / 那斯達克 vs 2000年</div></div></div>
+      <div class="fw-tog">+</div>
     </div>
-    <div class="fw-body">
-      <span class="badge risk">🔴 持續監控中</span>
+    <div class="fw-bd">
+      <span class="bdg r">🔴 持續監控中</span>
       <p>SpaceX 突破兩兆美元市值，市場對「火星移民」與 AI 夢想的瘋狂定價，令人聯想到 2000 年達康泡沫——那斯達克當時最終暴跌 78%。</p>
       <p>⚠️ <strong>觀察指標：</strong>費半單日跌幅 &gt;3%（警戒）、&gt;5%（極端）為最直接的台股前兆。Starlink 實際有獲利，但造火箭與 AI 算力仍燒錢——需區分夢想定價與基本面。</p>
     </div>
   </div>
 
-  <div class="section-label"><span>費半 vs 那指 — 6個月走勢</span></div>
-  <div class="tv-wrap">
-    <div class="tv-inner tall">
-      <div class="tradingview-widget-container" style="height:100%">
-        <div class="tradingview-widget-container__widget" style="height:100%"></div>
-        <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-symbol-overview.js" async>
-        {"symbols":[["費城半導體","NASDAQ:SOX|6M"],["那斯達克100","NASDAQ:NDX|6M"]],"chartOnly":false,"width":"100%","height":"100%","locale":"zh_TW","colorTheme":"dark","isTransparent":true,"showVolume":false,"chartType":"area","autosize":true}
-        </script>
-      </div>
-    </div>
-  </div>
 </div>
 
-<div class="footer">台股 AI 供應鏈追蹤 · 數據來源：TradingView · 延遲約 15 分鐘 · 僅供研究參考，不構成投資建議</div>
+<div class="footer">
+  台股 AI 供應鏈追蹤 · 數據由 Claude API 即時抓取 · 美股延遲約 15 分鐘<br>
+  台股數據於盤後（14:30 後）更新 · 僅供研究參考，不構成投資建議
+</div>
 
 <script>
-  (function(){
-    const now=new Date(),d=['日','一','二','三','四','五','六'];
-    document.getElementById('dateDisplay').textContent=
-      `${now.getFullYear()}/${String(now.getMonth()+1).padStart(2,'0')}/${String(now.getDate()).padStart(2,'0')} 週${d[now.getDay()]}`;
-  })();
-  function switchTab(n){
-    document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',['daily','weekly'][i]===n));
-    document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
-    document.getElementById('panel-'+n).classList.add('active');
+// ── Date header ──
+(function(){
+  const now = new Date();
+  const d = ['日','一','二','三','四','五','六'];
+  document.getElementById('hdrDate').textContent =
+    `${now.getFullYear()}/${String(now.getMonth()+1).padStart(2,'0')}/${String(now.getDate()).padStart(2,'0')} 週${d[now.getDay()]}`;
+})();
+
+// ── Tab / accordion ──
+function switchTab(n) {
+  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', ['daily','weekly'][i]===n));
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.getElementById('panel-'+n).classList.add('active');
+}
+function toggleFw(h) {
+  const b = h.nextElementSibling, t = h.querySelector('.fw-tog'), o = b.classList.contains('open');
+  b.classList.toggle('open',!o); t.classList.toggle('open',!o);
+}
+
+// ── Fetch via Claude API ──
+async function fetchAll() {
+  const btn = document.getElementById('fetchBtn');
+  const status = document.getElementById('fetchStatus');
+  const spinner = document.getElementById('fetchSpinner');
+
+  btn.disabled = true;
+  spinner.className = 'spin';
+  status.className = 'fetch-status loading';
+  status.textContent = '正在抓取數據中...';
+
+  const prompt = `請用 Yahoo Finance 查詢以下股票代碼的最新報價，並以 JSON 格式回傳，不要有任何其他文字或說明：
+^TWII（台灣加權指數）、^TPEX（台灣櫃買指數）、^SOX（費城半導體）、NQ=F（那斯達克期貨）、^NDX（那斯達克100）、TSM（台積電ADR）、^GSPC（S&P500）
+
+回傳格式範例（每個代碼都要有）：
+{
+  "TWII": {"price": 44523.45, "change": 123.45, "changePct": 0.28},
+  "TPEX": {"price": 285.32, "change": -1.23, "changePct": -0.43},
+  "SOX": {"price": 4821.33, "change": -145.2, "changePct": -2.92},
+  "NQ": {"price": 19823.5, "change": 45.25, "changePct": 0.23},
+  "NDX": {"price": 19654.2, "change": 82.3, "changePct": 0.42},
+  "TSM": {"price": 198.45, "change": 2.35, "changePct": 1.20},
+  "GSPC": {"price": 5432.1, "change": 12.3, "changePct": 0.23}
+}
+請務必只回傳 JSON，不要任何解釋文字。若無法取得某個數據，該欄位用 null。`;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 1000,
+        tools: [{ type: 'web_search_20250305', name: 'web_search' }],
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+
+    const data = await res.json();
+
+    // Extract text from response (may be after tool use)
+    let raw = '';
+    if (data.content) {
+      for (const block of data.content) {
+        if (block.type === 'text') raw += block.text;
+      }
+    }
+
+    // Parse JSON from response
+    const jsonMatch = raw.match(/\{[\s\S]*\}/);
+    if (!jsonMatch) throw new Error('無法解析數據格式');
+
+    const quotes = JSON.parse(jsonMatch[0]);
+    renderQuotes(quotes);
+
+    const now = new Date();
+    status.className = 'fetch-status ok';
+    status.textContent = `✓ 更新於 ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+    document.getElementById('hdrTime').textContent = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')} 更新`;
+
+  } catch(e) {
+    console.error(e);
+    status.className = 'fetch-status err';
+    status.textContent = `✗ 抓取失敗：${e.message}`;
+  } finally {
+    btn.disabled = false;
+    spinner.className = '';
   }
-  function toggleFw(h){
-    const b=h.nextElementSibling,t=h.querySelector('.fw-toggle'),o=b.classList.contains('open');
-    b.classList.toggle('open',!o);t.classList.toggle('open',!o);
+}
+
+// ── Render quotes ──
+function renderQuotes(q) {
+  const map = [
+    { key:'TWII', id:'twii', label:'大盤收漲，多頭延續', labelDown:'大盤收跌，留意隔日信心' },
+    { key:'TPEX', id:'tpex', label:'中小型股走強', labelDown:'中小型股偏弱' },
+    { key:'SOX',  id:'sox',  label:'科技多頭，台股利多', labelDown:'費半走弱，台股承壓' },
+    { key:'NQ',   id:'nq',   label:'期貨偏多，留意開低走高', labelDown:'期貨偏空，謹慎追空' },
+    { key:'NDX',  id:'ndx',  label:'那指走強', labelDown:'那指走弱，泡沫雷達升溫' },
+    { key:'TSM',  id:'tsm',  label:'台積電 ADR 強勢，台積本地開盤有撐', labelDown:'台積電 ADR 偏弱，注意台積本地走勢' },
+    { key:'GSPC', id:'spy',  label:'大盤平穩', labelDown:'美股大盤走弱' },
+  ];
+
+  map.forEach(({ key, id, label, labelDown }) => {
+    const d = q[key];
+    if (!d || d.price === null) return;
+    const isUp = d.changePct >= 0;
+    const card = document.getElementById('card-'+id);
+    card.className = `card ${isUp ? 'up' : 'down'}`;
+    document.getElementById('val-'+id).textContent = fmt(d.price, key);
+    document.getElementById('chg-'+id).textContent =
+      `${isUp?'▲':'▼'} ${Math.abs(d.change).toFixed(key==='TWII'||key==='TPEX'?2:2)}  ${isUp?'+':''}${d.changePct.toFixed(2)}%`;
+    document.getElementById('sig-'+id).textContent = isUp ? label : labelDown;
+  });
+
+  // Alerts
+  if (q.SOX && q.SOX.changePct !== null) {
+    const pct = q.SOX.changePct;
+    const box = document.getElementById('alertSox');
+    const txt = document.getElementById('alertSoxTxt');
+    if (pct <= -5) {
+      box.className = 'alert red show';
+      txt.innerHTML = `<strong>🚨 費半重挫 ${pct.toFixed(2)}%</strong>，超過 -5% 極端警戒線。台股明日早盤壓力極大，當沖與高槓桿請特別謹慎。`;
+    } else if (pct <= -3) {
+      box.className = 'alert show';
+      txt.innerHTML = `<strong>⚠️ 費半下跌 ${pct.toFixed(2)}%</strong>，超過 -3% 警戒線。台股明日開盤可能承壓，觀察那指期貨能否彌補、上演「開低走高」。`;
+    } else {
+      box.className = 'alert';
+    }
   }
+
+  if (q.NQ && q.SOX && q.SOX.changePct <= -3 && q.NQ.changePct >= 0.3) {
+    document.getElementById('alertFut').className = 'alert green show';
+    document.getElementById('alertFutTxt').innerHTML =
+      `<strong>費半雖跌但期貨轉正</strong>，這是「開低走高」的典型前兆。注意台股早盤是否出現 V 型反彈機會。`;
+  } else {
+    document.getElementById('alertFut').className = 'alert';
+  }
+
+  // Insight
+  generateInsight(q);
+}
+
+function fmt(price, key) {
+  if (key === 'TWII') return price.toLocaleString('en-US', {maximumFractionDigits:2});
+  if (key === 'TPEX') return price.toFixed(2);
+  if (key === 'TSM' || key === 'GSPC') return price.toFixed(2);
+  return price.toLocaleString('en-US', {maximumFractionDigits:2});
+}
+
+function generateInsight(q) {
+  const box = document.getElementById('insightBox');
+  const txt = document.getElementById('insightText');
+  const parts = [];
+
+  const sox = q.SOX?.changePct;
+  const nq = q.NQ?.changePct;
+  const twii = q.TWII?.changePct;
+  const tsm = q.TSM?.changePct;
+
+  if (sox !== undefined && sox !== null && sox <= -3 && nq !== undefined && nq !== null && nq >= 0.3) {
+    parts.push('費半雖承壓，但那指期貨已轉正，<strong>「開低走高」機率提升</strong>，注意台股早盤是否出現逢低買盤。');
+  } else if (sox !== undefined && sox !== null && sox <= -3) {
+    parts.push(`費半下跌 ${sox.toFixed(1)}%，<strong>台股明日開盤面臨壓力</strong>，AI 供應鏈個股需留意拉回幅度。`);
+  } else if (sox !== undefined && sox !== null && sox >= 1) {
+    parts.push(`費半上漲 ${sox.toFixed(1)}%，<strong>科技多頭訊號延續</strong>，台股 AI 供應鏈個股受惠。`);
+  }
+
+  if (twii !== undefined && twii !== null && twii >= 0) {
+    parts.push('台股大盤收漲，ETF 定期定額買盤持續護市，<strong>結構性多頭格局未變</strong>。');
+  } else if (twii !== undefined && twii !== null && twii < -1) {
+    parts.push('大盤出現拉回，但 AI 供應鏈質變支撐仍在，<strong>逢低買進 ETF 的散戶</strong>可能再度成為反彈動能。');
+  }
+
+  if (tsm !== undefined && tsm !== null && Math.abs(tsm) >= 1.5) {
+    parts.push(`台積電 ADR ${tsm > 0 ? '強漲' : '走弱'} ${Math.abs(tsm).toFixed(1)}%，<strong>台積本地股明日開盤參考</strong>方向明確。`);
+  }
+
+  if (parts.length === 0) {
+    parts.push('各指標目前無明顯極端訊號，<strong>維持現有策略</strong>，持續觀察費半與那指期貨方向。');
+  }
+
+  txt.innerHTML = parts.join('<br>');
+  box.style.display = 'block';
+}
 </script>
 </body>
 </html>
