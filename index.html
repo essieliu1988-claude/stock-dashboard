@@ -310,27 +310,38 @@ function toggleFw(h) {
 }
 
 // ── Yahoo Finance via allorigins CORS proxy ──
+// 使用原始 Yahoo 代碼，由函式內部處理 encoding
 const SYMBOLS = {
-  TWII: '%5ETWII',
-  TPEX: '%5ETPEX',
-  SOX:  '%5ESOX',
-  NQ:   'NQ%3DF',
-  NDX:  '%5ENDX',
+  TWII: '^TWII',
+  TPEX: '^TPEX',
+  SOX:  '^SOX',
+  NQ:   'NQ=F',
+  NDX:  '^NDX',
   TSM:  'TSM',
-  GSPC: '%5EGSPC'
+  GSPC: '^GSPC'
 };
 
-async function fetchQuote(key, encoded) {
-  const yahooUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${encoded}?interval=1d&range=2d`;
+async function fetchQuote(key, symbol) {
+  // 先對 symbol 做一次 encode，再整個 Yahoo URL 做一次 encode 給 allorigins
+  const encodedSymbol = encodeURIComponent(symbol);
+  const yahooUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${encodedSymbol}?interval=1d&range=5d&includePrePost=false`;
   const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(yahooUrl)}`;
-  const res = await fetch(proxyUrl);
+
+  const res = await fetch(proxyUrl, { cache: 'no-store' });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
   const wrapper = await res.json();
+  if (!wrapper.contents) throw new Error('empty contents');
+
   const data = JSON.parse(wrapper.contents);
-  const meta = data?.chart?.result?.[0]?.meta;
-  if (!meta) throw new Error('no meta');
+  const result = data?.chart?.result?.[0];
+  if (!result) throw new Error('no result');
+
+  const meta = result.meta;
   const price = meta.regularMarketPrice;
-  const prev  = meta.chartPreviousClose ?? meta.previousClose;
+  const prev  = meta.chartPreviousClose ?? meta.previousClose ?? meta.regularMarketPreviousClose;
+  if (!price || !prev) throw new Error('no price/prev');
+
   const change = price - prev;
   const changePct = (change / prev) * 100;
   return { price, change, changePct };
@@ -350,10 +361,11 @@ async function fetchAll() {
   const errors = [];
 
   await Promise.allSettled(
-    Object.entries(SYMBOLS).map(async ([key, enc]) => {
+    Object.entries(SYMBOLS).map(async ([key, symbol]) => {
       try {
-        quotes[key] = await fetchQuote(key, enc);
+        quotes[key] = await fetchQuote(key, symbol);
       } catch(e) {
+        console.warn(`${key} failed:`, e.message);
         errors.push(key);
         quotes[key] = null;
       }
